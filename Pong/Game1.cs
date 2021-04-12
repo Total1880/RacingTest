@@ -2,22 +2,21 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pong
 {
     public class Game1 : Game
     {
-        private Texture2D _carTexture1;
-        private Texture2D _carTexture2;
         private Texture2D _trackTexture;
-        private Vector2 _carPosition1;
-        private Vector2 _carPosition2;
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
+        private List<Car> _cars;
 
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
+            _cars = new List<Car>();
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
@@ -29,8 +28,8 @@ namespace Pong
             _graphics.PreferredBackBufferHeight = 300;
             _graphics.ApplyChanges();
 
-            _carPosition1 = new Vector2(0, 50);
-            _carPosition2 = new Vector2(0, 100);
+            _cars.Add(new Car(0, new Vector2(0, 50), 0f, 200f));
+            _cars.Add(new Car(1, new Vector2(0, 50), 0f, 200f));
 
             base.Initialize();
         }
@@ -40,8 +39,8 @@ namespace Pong
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            _carTexture1 = Content.Load<Texture2D>("car_10a");
-            _carTexture2 = Content.Load<Texture2D>("car_2a");
+            _cars[0].CarTexture = Content.Load<Texture2D>("car_10a");
+            _cars[1].CarTexture = Content.Load<Texture2D>("car_2a");
             _trackTexture = Content.Load<Texture2D>("track_01");
         }
 
@@ -51,13 +50,30 @@ namespace Pong
                 Exit();
 
             // TODO: Add your update logic here
-            _carPosition1.X += RandomCarSpeed(0f, 100f) * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            _carPosition2.X += RandomCarSpeed(0f, 100f) * (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-            if (_carPosition1.X + _carTexture1.Width > _graphics.PreferredBackBufferWidth)
-                _carPosition1.X = 0;
-            if (_carPosition2.X + _carTexture2.Width > _graphics.PreferredBackBufferWidth)
-                _carPosition2.X = 0;
+            foreach (var car in _cars)
+            {
+                if (_cars.Any(c => 
+                c.CarPosition.X >= car.CarPosition.X 
+                && c.CarPosition.X <= (car.CarPosition.X + car.CarTexture.Width)
+                && c.CarPosition.Y == car.CarPosition.Y
+                && c.Id != car.Id
+                ))
+                {
+                    car.UpdateCarPosition(gameTime, _graphics.PreferredBackBufferWidth, false, true);
+                }
+                else if (!_cars.Any(c =>
+                c.CarPosition.X >= car.CarPosition.X
+                && c.CarPosition.X <= (car.CarPosition.X + car.CarTexture.Width)
+                && c.Id != car.Id
+                ) && car.CarPosition.Y > 50)
+                {
+                    car.UpdateCarPosition(gameTime, _graphics.PreferredBackBufferWidth, true, false);
+                }
+                else
+                {
+                    car.UpdateCarPosition(gameTime, _graphics.PreferredBackBufferWidth, false, false);
+                }
+            }
 
             base.Update(gameTime);
         }
@@ -75,11 +91,50 @@ namespace Pong
                 latestTrackX += _trackTexture.Width;
             } while (latestTrackX < _graphics.PreferredBackBufferWidth);
 
-            _spriteBatch.Draw(_carTexture1, _carPosition1, Color.White);
-            _spriteBatch.Draw(_carTexture2, _carPosition2, Color.White);
+            foreach (var car in _cars)
+            {
+                _spriteBatch.Draw(car.CarTexture, car.CarPosition, Color.White);
+            }
+
             _spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+    }
+
+    public class Car
+    {
+        private int _id;
+        private Texture2D _carTexture;
+        private Vector2 _carPosition;
+        private float _minSpeed;
+        private float _maxSpeed;
+
+        public Texture2D CarTexture { get => _carTexture; set { _carTexture = value; } }
+        public Vector2 CarPosition { get => _carPosition; set { _carPosition = value; } }
+        public int Id { get => _id; }
+
+        public Car(int id, Vector2 carPosition, float minSpeed, float maxSpeed)
+        {
+            _id = id;
+            _carPosition = carPosition;
+            _minSpeed = minSpeed;
+            _maxSpeed = maxSpeed;
+        }
+
+        public void UpdateCarPosition(GameTime gameTime, int width, bool goToLeft, bool goToRight)
+        {
+            //_carPosition.Y = 50;
+
+            _carPosition.X += RandomCarSpeed(_minSpeed, _maxSpeed) * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (_carPosition.X + _carTexture.Width > width)
+                _carPosition.X = 0;
+
+            if (goToRight)
+                _carPosition.Y += _carTexture.Height;
+
+            if (goToLeft)
+                _carPosition.Y -= _carTexture.Height;
         }
 
         static float RandomCarSpeed(float min, float max)

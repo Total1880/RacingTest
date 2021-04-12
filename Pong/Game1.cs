@@ -30,6 +30,8 @@ namespace Pong
 
             _cars.Add(new Car(0, new Vector2(0, 50), 0f, 200f));
             _cars.Add(new Car(1, new Vector2(0, 50), 0f, 200f));
+            _cars.Add(new Car(2, new Vector2(0, 50), 0f, 200f));
+            _cars.Add(new Car(3, new Vector2(0, 50), 0f, 200f));
 
             base.Initialize();
         }
@@ -41,6 +43,8 @@ namespace Pong
             // TODO: use this.Content to load your game content here
             _cars[0].CarTexture = Content.Load<Texture2D>("car_10a");
             _cars[1].CarTexture = Content.Load<Texture2D>("car_2a");
+            _cars[2].CarTexture = Content.Load<Texture2D>("car_4a");
+            _cars[3].CarTexture = Content.Load<Texture2D>("car_7a");
             _trackTexture = Content.Load<Texture2D>("track_01");
         }
 
@@ -62,8 +66,8 @@ namespace Pong
                     car.UpdateCarPosition(gameTime, _graphics.PreferredBackBufferWidth, false, true);
                 }
                 else if (!_cars.Any(c =>
-                c.CarPosition.X >= car.CarPosition.X
-                && c.CarPosition.X <= (car.CarPosition.X + car.CarTexture.Width)
+                c.CarPosition.X >= car.CarPosition.X - car.CarTexture.Width
+                && c.CarPosition.X <= (car.CarPosition.X + car.CarTexture.Width * 2)
                 && c.Id != car.Id
                 ) && car.CarPosition.Y > 50)
                 {

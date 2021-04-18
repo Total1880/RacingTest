@@ -11,12 +11,12 @@ namespace Pong
         private Texture2D _trackTexture;
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private List<Car> _cars;
+        private List<Cyclist> _cyclists;
 
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
-            _cars = new List<Car>();
+            _cyclists = new List<Cyclist>();
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
@@ -28,10 +28,10 @@ namespace Pong
             _graphics.PreferredBackBufferHeight = 300;
             _graphics.ApplyChanges();
 
-            _cars.Add(new Car(0, new Vector2(0, 50), 0f, 200f));
-            _cars.Add(new Car(1, new Vector2(0, 50), 0f, 200f));
-            _cars.Add(new Car(2, new Vector2(0, 50), 0f, 200f));
-            _cars.Add(new Car(3, new Vector2(0, 50), 0f, 200f));
+            _cyclists.Add(new Cyclist(0, new Vector2(0, 50), 0f, 200f));
+            _cyclists.Add(new Cyclist(1, new Vector2(0, 50), 0f, 200f));
+            _cyclists.Add(new Cyclist(2, new Vector2(0, 50), 0f, 200f));
+            _cyclists.Add(new Cyclist(3, new Vector2(0, 50), 0f, 200f));
 
             base.Initialize();
         }
@@ -41,10 +41,10 @@ namespace Pong
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            _cars[0].CarTexture = Content.Load<Texture2D>("car_10a");
-            _cars[1].CarTexture = Content.Load<Texture2D>("car_2a");
-            _cars[2].CarTexture = Content.Load<Texture2D>("car_4a");
-            _cars[3].CarTexture = Content.Load<Texture2D>("car_7a");
+            _cyclists[0].CyclistTexture = Content.Load<Texture2D>("cyclist");
+            _cyclists[1].CyclistTexture = Content.Load<Texture2D>("cyclist");
+            _cyclists[2].CyclistTexture = Content.Load<Texture2D>("cyclist");
+            _cyclists[3].CyclistTexture = Content.Load<Texture2D>("cyclist");
             _trackTexture = Content.Load<Texture2D>("track_01");
         }
 
@@ -54,28 +54,28 @@ namespace Pong
                 Exit();
 
             // TODO: Add your update logic here
-            foreach (var car in _cars)
+            foreach (var cyclist in _cyclists)
             {
-                if (_cars.Any(c => 
-                c.CarPosition.X >= car.CarPosition.X 
-                && c.CarPosition.X <= (car.CarPosition.X + car.CarTexture.Width)
-                && c.CarPosition.Y == car.CarPosition.Y
-                && c.Id != car.Id
+                if (_cyclists.Any(c => 
+                c.CyclistPosition.X >= cyclist.CyclistPosition.X 
+                && c.CyclistPosition.X <= (cyclist.CyclistPosition.X + cyclist.CyclistTexture.Width)
+                && c.CyclistPosition.Y == cyclist.CyclistPosition.Y
+                && c.Id != cyclist.Id
                 ))
                 {
-                    car.UpdateCarPosition(gameTime, _graphics.PreferredBackBufferWidth, false, true);
+                    cyclist.UpdateCyclistPosition(gameTime, _graphics.PreferredBackBufferWidth, false, true);
                 }
-                else if (!_cars.Any(c =>
-                c.CarPosition.X >= car.CarPosition.X - car.CarTexture.Width
-                && c.CarPosition.X <= (car.CarPosition.X + car.CarTexture.Width * 2)
-                && c.Id != car.Id
-                ) && car.CarPosition.Y > 50)
+                else if (!_cyclists.Any(c =>
+                c.CyclistPosition.X >= cyclist.CyclistPosition.X - cyclist.CyclistTexture.Width
+                && c.CyclistPosition.X <= (cyclist.CyclistPosition.X + cyclist.CyclistTexture.Width * 2)
+                && c.Id != cyclist.Id
+                ) && cyclist.CyclistPosition.Y > 50)
                 {
-                    car.UpdateCarPosition(gameTime, _graphics.PreferredBackBufferWidth, true, false);
+                    cyclist.UpdateCyclistPosition(gameTime, _graphics.PreferredBackBufferWidth, true, false);
                 }
                 else
                 {
-                    car.UpdateCarPosition(gameTime, _graphics.PreferredBackBufferWidth, false, false);
+                    cyclist.UpdateCyclistPosition(gameTime, _graphics.PreferredBackBufferWidth, false, false);
                 }
             }
 
@@ -95,9 +95,9 @@ namespace Pong
                 latestTrackX += _trackTexture.Width;
             } while (latestTrackX < _graphics.PreferredBackBufferWidth);
 
-            foreach (var car in _cars)
+            foreach (var car in _cyclists)
             {
-                _spriteBatch.Draw(car.CarTexture, car.CarPosition, Color.White);
+                _spriteBatch.Draw(car.CyclistTexture, car.CyclistPosition, Color.White);
             }
 
             _spriteBatch.End();
@@ -106,42 +106,42 @@ namespace Pong
         }
     }
 
-    public class Car
+    public class Cyclist
     {
         private int _id;
-        private Texture2D _carTexture;
-        private Vector2 _carPosition;
+        private Texture2D _cyclistTexture;
+        private Vector2 _cyclistPosition;
         private float _minSpeed;
         private float _maxSpeed;
 
-        public Texture2D CarTexture { get => _carTexture; set { _carTexture = value; } }
-        public Vector2 CarPosition { get => _carPosition; set { _carPosition = value; } }
+        public Texture2D CyclistTexture { get => _cyclistTexture; set { _cyclistTexture = value; } }
+        public Vector2 CyclistPosition { get => _cyclistPosition; set { _cyclistPosition = value; } }
         public int Id { get => _id; }
 
-        public Car(int id, Vector2 carPosition, float minSpeed, float maxSpeed)
+        public Cyclist(int id, Vector2 cyclistPosition, float minSpeed, float maxSpeed)
         {
             _id = id;
-            _carPosition = carPosition;
+            _cyclistPosition = cyclistPosition;
             _minSpeed = minSpeed;
             _maxSpeed = maxSpeed;
         }
 
-        public void UpdateCarPosition(GameTime gameTime, int width, bool goToLeft, bool goToRight)
+        public void UpdateCyclistPosition(GameTime gameTime, int width, bool goToLeft, bool goToRight)
         {
-            //_carPosition.Y = 50;
+            //_cyclistPosition.Y = 50;
 
-            _carPosition.X += RandomCarSpeed(_minSpeed, _maxSpeed) * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (_carPosition.X + _carTexture.Width > width)
-                _carPosition.X = 0;
+            _cyclistPosition.X += RandomCyclistSpeed(_minSpeed, _maxSpeed) * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (_cyclistPosition.X + _cyclistTexture.Width > width)
+                _cyclistPosition.X = 0;
 
             if (goToRight)
-                _carPosition.Y += _carTexture.Height;
+                _cyclistPosition.Y += _cyclistTexture.Height;
 
             if (goToLeft)
-                _carPosition.Y -= _carTexture.Height;
+                _cyclistPosition.Y -= _cyclistTexture.Height;
         }
 
-        static float RandomCarSpeed(float min, float max)
+        static float RandomCyclistSpeed(float min, float max)
         {
             System.Random random = new System.Random();
             double val = (random.NextDouble() * (max - min) + min);
